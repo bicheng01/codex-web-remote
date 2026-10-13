@@ -29,7 +29,7 @@ export function parseArgs(args){
  if(result.command!=='start'&&['mode','port'].some(k=>result[k]!==undefined))throw Error('--mode、--port 仅用于 start');
  if(result.output&&!['start','qr'].includes(result.command))throw Error('--output 仅用于 start/qr');return result;
 }
-export async function run(args,{control,write=text=>process.stdout.write(text)}={}){
+export async function run(args,{control,write=text=>process.stdout.write(text),progress=text=>process.stderr.write(text)}={}){
  const options=parseArgs(args);if(options.command==='help'){write(help);return}
  if(!control){if(options.runtime)process.env.REMOTE_RUNTIME_DIR=path.resolve(options.runtime);control=await import('./control.mjs')}
  if(options.command==='threads'){const {readCatalog}=await import('../catalog.mjs');const catalog=await readCatalog();const tasks=catalog.workspaces.flatMap(w=>w.tasks.map(t=>({id:t.id,title:t.title,workspace:w.name})));write(options.json?JSON.stringify(tasks,null,2)+'\n':tasks.map(t=>`${t.id}  ${t.workspace} / ${t.title}`).join('\n')+'\n');return tasks}
@@ -40,7 +40,8 @@ export async function run(args,{control,write=text=>process.stdout.write(text)}=
  else if(options.command==='qr')value=await control.refresh();
  else{
   let remembered={};try{remembered=JSON.parse(await readFile(path.join(runtime,'cli-session.json'),'utf8'))}catch{}
-  const started=await control.start({mode:options.mode??remembered.mode??'public',port:options.port??remembered.port??43127});
+  const stages={tunnel:'正在申请公网地址…',connect:'正在连接公网隧道…',verify:'正在验证公网页面和脚本…',ready:'公网已就绪，正在生成二维码…',local:'正在启动局域网服务…'};let previous;
+  const started=await control.start({mode:options.mode??remembered.mode??'public',port:options.port??remembered.port??43127},{onProgress:stage=>{if(!options.json&&stages[stage]&&previous!==stage){previous=stage;progress(stages[stage]+'\n')}}});
   if(runtime){await mkdir(runtime,{recursive:true,mode:0o700});await writeFile(path.join(runtime,'cli-session.json'),JSON.stringify({mode:started.mode,port:started.port??options.port??remembered.port??43127})+'\n',{mode:0o600})}
   value=started.qrBase64?started:{...started,...await control.pairingQr()};
  }
