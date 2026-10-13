@@ -1,0 +1,3 @@
+import {createElement,ArrowLeft,Copy,SquarePen,Palette,Folder,PanelRightClose,PanelRightOpen,ArrowDown,ArrowUp,Square,WrapText,MoreHorizontal,Check,Shield,ChevronDown,Hand,ShieldCheck,ShieldAlert} from 'lucide';
+const icons={back:ArrowLeft,copy:Copy,edit:SquarePen,palette:Palette,folder:Folder,panelClose:PanelRightClose,panelOpen:PanelRightOpen,down:ArrowDown,up:ArrowUp,stop:Square,wrap:WrapText,more:MoreHorizontal,check:Check,shield:Shield,chevron:ChevronDown,hand:Hand,shieldCheck:ShieldCheck,shieldAlert:ShieldAlert};
+export function setIcon(element,name){const svg=createElement(icons[name],{width:18,height:18,'stroke-width':1.6,'aria-hidden':'true'});element.replaceChildren(svg)}

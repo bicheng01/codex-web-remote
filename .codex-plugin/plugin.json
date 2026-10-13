@@ -1,0 +1,13 @@
+{
+  "name": "codex-web-remote",
+  "version": "0.5.0",
+  "description": "\u5728\u4f1a\u8bdd\u91cc\u663e\u793a\u624b\u673a\u9065\u63a7\u4e8c\u7ef4\u7801\uff0c\u63d0\u4f9b\u6a21\u578b\u9009\u62e9\u548c\u6743\u9650\u8bbe\u7f6e\u3002",
+  "author": {
+    "name": "bicheng01"
+  },
+  "mcpServers": "./.mcp.json",
+  "skills": "./skills",
+  "homepage": "https://github.com/bicheng01/codex-web-remote",
+  "repository": "https://github.com/bicheng01/codex-web-remote",
+  "license": "Apache-2.0"
+}

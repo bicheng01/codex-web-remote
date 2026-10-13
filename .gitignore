@@ -1,0 +1,12 @@
+node_modules/
+.runtime/
+.env
+.env.*
+!.env.example
+*.log
+.DS_Store
+coverage/
+*.tgz
+service.json
+cli-session.json
+pairing-*.png

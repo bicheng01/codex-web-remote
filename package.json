@@ -1,0 +1,57 @@
+{
+  "name": "codex-web-remote",
+  "version": "0.5.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node server.mjs",
+    "test": "node --test",
+    "build:icons": "esbuild icons-source.mjs --bundle --format=esm --minify --outfile=public/icons.mjs",
+    "build:frontend": "node scripts/build-frontend.mjs",
+    "build": "npm run build:icons && npm run build:frontend"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.1",
+    "dompurify": "^3.4.17",
+    "lucide": "^1.55.0",
+    "marked": "^18.1.1",
+    "qrcode": "^1.5.4",
+    "ws": "^8.22.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.2",
+    "jsdom": "^29.1.1"
+  },
+  "bin": {
+    "codex-remote": "./plugin/cli.mjs",
+    "codex-remote-mcp": "./plugin/mcp.mjs"
+  },
+  "description": "QR-paired mobile remote control for Codex Desktop, with CLI and MCP interfaces",
+  "license": "Apache-2.0",
+  "author": "bicheng01",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bicheng01/codex-web-remote.git"
+  },
+  "homepage": "https://github.com/bicheng01/codex-web-remote",
+  "engines": {
+    "node": ">=24"
+  },
+  "files": [
+    "plugin/",
+    "public/",
+    "skills/",
+    "scripts/",
+    ".codex-plugin/",
+    ".mcp.json",
+    ".agents/",
+    "*.mjs",
+    "catalog.py",
+    "*.command",
+    "README.md",
+    "docs/",
+    "LICENSE",
+    "NOTICE",
+    "THIRD-PARTY.md"
+  ]
+}
