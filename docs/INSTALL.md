@@ -17,7 +17,7 @@ cloudflared --version   # 仅公网模式需要
 
 参见根 README 的快速安装和 MCP 小节。`npm ci` 使用锁定依赖；`npm run build` 更新图标、合并脚本和压缩资源；`npm link` 安装两个终端命令。
 
-如果只在终端操作，不必安装 MCP 或 Codex 插件：
+如果只在终端操作，不必配置 MCP：
 
 ```sh
 node plugin/cli.mjs start --mode public
@@ -77,8 +77,6 @@ codex-remote stop
 npm unlink -g codex-web-remote
 # 如果使用独立 MCP
 codex mcp remove web_remote
-# 如果安装了插件
-codex plugin remove codex-web-remote@codex-web-remote
 ```
 
 源码和运行目录不会自动删除，清理前确认不再需要本地日志。不要对自定义 `--runtime` 目录盲目执行递归删除。

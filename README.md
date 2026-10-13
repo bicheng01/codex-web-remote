@@ -79,7 +79,7 @@ codex-remote start --mode lan
 
 ## MCP 接入
 
-### 独立 MCP（不安装插件也可使用）
+### Codex MCP 注册
 
 在克隆目录执行：
 
@@ -113,21 +113,9 @@ MCP 工具：
 | `start_remote` | 启动或复用服务，返回二维码图片与 PNG 路径 |
 | `remote_status` | 读取服务和桌面连接状态 |
 | `refresh_qr` | 一次调用刷新并返回二维码 |
-| `stop_remote` | 撤销手机连接，停止本插件拥有的服务 |
+| `stop_remote` | 撤销手机连接，停止本安装拥有的服务 |
 
 `start_remote` 无需会话 ID，可指定 `mode: public` 或 `lan`、`port`。运行中的服务会被复用。MCP 返回 text 元数据与 image 内容，若客户端不直接渲染 image，Agent 可用返回的 `imagePath` 在聊天内显示图片。协议的 stdout 只输出 MCP 消息。
-
-### Codex 插件（MCP）
-
-先完成上面的 `npm ci` 和 `npm link`，再在克隆目录执行：
-
-```sh
-codex plugin marketplace add "$PWD"
-codex plugin add codex-web-remote@codex-web-remote
-```
-
-插件的 `.mcp.json` 调用全局命令 `codex-remote-mcp`，因此客户端必须能在 PATH 找到它。若图形界面的 PATH 不包含 npm 全局目录，使用上一节的绝对路径 MCP 注册方式即可。
-选择一种 MCP 注册方式即可，避免插件和独立 MCP 同时注册而出现两组重复工具。客户端可能需要重启或新聊天才能发现新工具。安装插件本身不会启动公网服务。
 
 完整步骤和故障处理见 [安装文档](docs/INSTALL.md)，工作原理见 [架构文档](docs/ARCHITECTURE.md)。
 
