@@ -1,6 +1,6 @@
 # Third-party code and adaptation notes
 
-The conversation surface adapts layout contracts and styling from [zai-org/ZCode](https://github.com/zai-org/ZCode), licensed under Apache-2.0, reference commit `aac4755666d09fdcd70272fcf063c077a639015f`. Original license and notice are included in `third-party/zcode/`. Adapted portions are marked in `public/style.css` and `public/app.js`.
+The conversation surface adapts layout contracts and styling from [zai-org/ZCode](https://github.com/zai-org/ZCode), licensed under Apache-2.0, reference commit `aac4755666d09fdcd70272fcf063c077a639015f`. The Apache-2.0 license is included in the root LICENSE; attribution is preserved in the root NOTICE. No ZCode runtime package or source checkout is required. Adapted portions are marked in `public/style.css` and `public/app.js`.
 
 Sources: `packages/ui/src/WebRemoteControlMobileShell.tsx` (44px navigation row, independent mobile home/chat selection and back navigation), `packages/ui/src/v4/ConversationUserInputBubble.tsx` (user bubble geometry), `packages/ui/src/v4/ConversationComposer.tsx` (bottom input shell and distinct error surface), and `packages/ui/src/styles.css` (`theme-zai-dark` colors).
 

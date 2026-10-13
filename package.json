@@ -1,6 +1,6 @@
 {
   "name": "codex-web-remote",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "private": true,
   "type": "module",
   "scripts": {
@@ -40,7 +40,6 @@
   "files": [
     "plugin/",
     "public/",
-    "skills/",
     "scripts/",
     ".codex-plugin/",
     ".mcp.json",

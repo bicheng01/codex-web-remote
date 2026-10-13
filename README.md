@@ -1,6 +1,6 @@
 # Codex Web Remote
 
-用手机扫码连接本机 Codex Desktop：查看工作区和会话、发送或补充指令、停止当前任务，以及选择模型和权限模式。提供 **CLI、MCP 和 Codex skill** 三种入口，底层共用同一个控制服务。
+用手机扫码连接本机 Codex Desktop：查看工作区和会话、发送或补充指令、停止当前任务，以及选择模型和权限模式。提供 **CLI 和 MCP** 两种调用接口，底层共用同一个控制服务。
 
 这是独立项目，通过 Desktop 的内部 IPC 协议集成；目前在 **macOS** 验证。Desktop 更新、IPC 协议或本地数据库结构变化可能需要适配，尚未验证 Windows/Linux。
 
@@ -93,7 +93,7 @@ MCP 工具：
 
 首次 `start_remote` 需要 `thread_id`，可指定 `mode: public` 或 `lan`、`port`。运行中的服务会被复用。MCP 返回 text 元数据与 image 内容，若客户端不直接渲染 image，Agent 可用返回的 `imagePath` 在聊天内显示图片。协议的 stdout 只输出 MCP 消息。
 
-### Codex 插件（MCP + skill）
+### Codex 插件（MCP）
 
 先完成上面的 `npm ci` 和 `npm link`，再在克隆目录执行：
 
@@ -102,13 +102,7 @@ codex plugin marketplace add "$PWD"
 codex plugin add codex-web-remote@codex-web-remote
 ```
 
-插件的 `.mcp.json` 调用全局命令 `codex-remote-mcp`，因此客户端必须能在 PATH 找到它。若图形界面的 PATH 不包含 npm 全局目录，使用上一节的绝对路径 MCP 注册方式，并单独安装技能：
-
-```sh
-mkdir -p ~/.codex/skills/codex-web-remote
-cp skills/remote-control/SKILL.md ~/.codex/skills/codex-web-remote/SKILL.md
-```
-
+插件的 `.mcp.json` 调用全局命令 `codex-remote-mcp`，因此客户端必须能在 PATH 找到它。若图形界面的 PATH 不包含 npm 全局目录，使用上一节的绝对路径 MCP 注册方式即可。
 选择一种 MCP 注册方式即可，避免插件和独立 MCP 同时注册而出现两组重复工具。客户端可能需要重启或新聊天才能发现新工具。安装插件本身不会启动公网服务。
 
 完整步骤和故障处理见 [安装文档](docs/INSTALL.md)，工作原理见 [架构文档](docs/ARCHITECTURE.md)。
@@ -155,4 +149,4 @@ THREAD_ID=<thread-id> npm test
 
 ## 许可
 
-Apache-2.0。界面部分参考和改编自 [ZCode](https://github.com/zai-org/ZCode)，并使用 Marked、DOMPurify、Lucide 等第三方组件。原始许可、修改说明及归属见 [THIRD-PARTY.md](THIRD-PARTY.md) 与 `third-party/`。
+Apache-2.0。界面部分参考和改编自 [ZCode](https://github.com/zai-org/ZCode)，并使用 Marked、DOMPurify、Lucide 等第三方组件。原始许可、修改说明及归属见 [THIRD-PARTY.md](THIRD-PARTY.md) 与根目录 `NOTICE` / `LICENSE`。

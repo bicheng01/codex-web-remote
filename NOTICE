@@ -2,5 +2,5 @@ Codex Web Remote
 Copyright 2026 bicheng01
 
 This project includes adaptations from ZCode (Apache-2.0).
-See THIRD-PARTY.md and third-party/zcode/ for attribution and license notices.
+See THIRD-PARTY.md for attribution. The Apache-2.0 license is included at the repository root.
 This project is an independent integration and is not an official OpenAI product.

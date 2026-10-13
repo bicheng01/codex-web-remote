@@ -80,4 +80,4 @@ codex mcp remove web_remote
 codex plugin remove codex-web-remote@codex-web-remote
 ```
 
-单独复制过 skill 时，可自行删除 `~/.codex/skills/codex-web-remote`。源码和运行目录不会自动删除，清理前确认不再需要本地日志。不要对自定义 `--runtime` 目录盲目执行递归删除。
+源码和运行目录不会自动删除，清理前确认不再需要本地日志。不要对自定义 `--runtime` 目录盲目执行递归删除。
