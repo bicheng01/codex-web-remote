@@ -6,6 +6,7 @@ import {readFile} from 'node:fs/promises';
 import {randomBytes,timingSafeEqual} from 'node:crypto';
 import QRCode from 'qrcode';
 import {Desktop} from './desktop.mjs';
+import {AppServerConnection,AppServerDesktop} from './app-server-desktop.mjs';
 import {serveAsset} from './static-assets.mjs';
 import {readCatalog} from './catalog.mjs';
 import {attachLive} from './live.mjs';
@@ -27,6 +28,7 @@ const socketPath=process.env.DESKTOP_SOCKET??path.join(process.env.CODEX_HOME??p
 const clients=new Map(),opening=new Map();
 const connectionView=()=>({connected:[...clients.values()].some(d=>d.connected),connectedThreads:clients.size});
 const unavailable=new Map(),historyCache=new Map();
+const appServer=new AppServerConnection();
 async function history(id){let h=historyCache.get(id);if(!h||Date.now()-h.time>5000){h={time:Date.now(),view:await readCatalog(id)};historyCache.set(id,h);if(historyCache.size>8)historyCache.delete(historyCache.keys().next().value)}return h.view}
 let catalogCache=null,catalogTime=0;
 async function catalog(){if(!catalogCache||Date.now()-catalogTime>3000){catalogCache=await readCatalog();catalogTime=Date.now()}return catalogCache}
@@ -37,9 +39,9 @@ async function selected(id){
   if(clients.has(id))return clients.get(id);
   if(unavailable.get(id)>Date.now())return null;
   if(opening.has(id))return opening.get(id);
-  const promise=(async()=>{const d=new Desktop({threadId:id,socketPath});
-    try{const deadline=setTimeout(()=>d.close(),1600);try{await d.connect()}finally{clearTimeout(deadline)}await new Promise(resolve=>{if(d.state)return resolve();const timer=setTimeout(()=>{d.off('change',changed);resolve()},600);function changed(){if(d.state){clearTimeout(timer);d.off('change',changed);resolve()}}d.on('change',changed)});
-      if(!d.state){d.close();unavailable.set(id,Date.now()+15000);return null}
+  const promise=(async()=>{let d=new Desktop({threadId:id,socketPath});
+    try{const deadline=setTimeout(()=>d.close(),1600);try{await d.connect()}catch(e){if(e.message!=='no-client-found'||d.owner)throw e;d.close();d=new AppServerDesktop({threadId:id,connection:appServer});await d.connect()}finally{clearTimeout(deadline)}if(d instanceof Desktop)await new Promise(resolve=>{if(d.state)return resolve();const timer=setTimeout(()=>{d.off('change',changed);resolve()},600);function changed(){if(d.state){clearTimeout(timer);d.off('change',changed);resolve()}}d.on('change',changed)});
+      if(!d.view().threadId){d.close();unavailable.set(id,Date.now()+15000);return null}
       if(clients.size>=8){const old=clients.keys().next().value;clients.get(old).close();clients.delete(old)}clients.set(id,d);d.on('change',()=>{clearTimeout(d.emitTimer);d.emitTimer=setTimeout(broadcast,100)});return d;
     }catch{d.close();unavailable.set(id,Date.now()+15000);return null}finally{opening.delete(id)}})();opening.set(id,promise);return promise;
 }
@@ -126,5 +128,5 @@ const live=attachLive(server,{allowedHosts,
 rotate();
 server.listen(port,'0.0.0.0',()=>{console.log(`Desktop pairing panel: http://127.0.0.1:${port}/admin#admin=${admin}`);console.log(`Phone origin: ${publicOrigin}`)});
 const heartbeat=setInterval(()=>{for(const s of streams){if(s.expires<Date.now()){s.res.end();streams.delete(s)}else s.res.write(': keepalive\n\n')}for(const[k,v]of sessions)if(v<Date.now())sessions.delete(k);for(const[k,v]of attempts)if(v.until<Date.now())attempts.delete(k)},15000);
-function shutdown(){clearInterval(heartbeat);live.close();for(const d of clients.values())d.close();for(const s of streams)s.res.end();server.close(()=>process.exit(0));setTimeout(()=>process.exit(0),1000).unref()}
+function shutdown(){clearInterval(heartbeat);live.close();for(const d of clients.values())d.close();appServer.close();for(const s of streams)s.res.end();server.close(()=>process.exit(0));setTimeout(()=>process.exit(0),1000).unref()}
 process.on('SIGINT',shutdown);process.on('SIGTERM',shutdown);

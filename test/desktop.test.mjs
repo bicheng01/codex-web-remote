@@ -9,7 +9,7 @@ test('Desktop incremental patches preserve array order and remove fields',()=>{
 });
 test('Browser projection includes only display fields and identifies current turn',()=>{
   const result=viewState({id:'thread',title:'Test',latestThreadSettings:{model:'test-model',developerInstructions:'private'},turns:[{turnId:'active',status:'inProgress',params:{secret:'private'},items:[{type:'userMessage',id:'u',content:[{type:'text',text:'hi'}]},{type:'agentMessage',id:'a',text:'hello'}]}]},true);
-  assert.equal(result.activeTurnId,'active');assert.equal(result.items[1].text,'hello');assert.ok(!JSON.stringify(result).includes('private'));
+  assert.equal(result.backend,'desktop-ipc');assert.equal(result.activeTurnId,'active');assert.equal(result.items[1].text,'hello');assert.ok(!JSON.stringify(result).includes('private'));
 });
 test('Idle input uses Desktop owner and inherits thread settings; active input steers',async()=>{
   const d=new Desktop({threadId:'thread',socketPath:'/unused'});d.connected=true;d.owner='desktop-owner';d.state={id:'thread',cwd:'/workspace',turns:[]};
@@ -28,4 +28,10 @@ test('Model change updates next-turn settings with a concurrency guard and never
  assert.equal(calls.length,2);assert.equal(calls[1].method,'thread-follower-update-thread-settings');assert.deepEqual(calls[1].params.threadSettings,{model:'new',effort:'medium'});assert.equal(calls[1].params.activeTurnId,null);assert.deepEqual(calls[1].params.condition,{ifModelEquals:'old',ifEffortEquals:'high'});assert.equal(d.view().activeTurnId,'active');
  d.rpc=async method=>method==='thread-follower-read-model-settings'?{result:{settings:{model:'old',reasoningEffort:'high'}}}:{result:{applied:false}};
  await assert.rejects(d.setModel('new','low'),/改变/);
+});
+test('Desktop negotiates older follower protocol versions without changing the preferred macOS versions',async()=>{
+ const d=new Desktop({threadId:'thread',socketPath:'/unused'}),seen=[];
+ d.rpc=async(_method,_params,extra)=>{seen.push(extra.version);if(extra.version===1)throw Error('no-client-found');return{result:{settings:{model:'test'}}}};
+ const result=await d.compatibleRpc('thread-follower-read-model-settings',{conversationId:'thread'},{targetClientId:'owner'});
+ assert.equal(result.result.settings.model,'test');assert.deepEqual(seen,[1,0]);
 });

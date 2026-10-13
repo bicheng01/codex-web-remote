@@ -11,7 +11,7 @@ codex --version
 cloudflared --version   # 仅公网模式需要
 ```
 
-请先在 macOS 上启动并登录 Codex Desktop；扫码后在手机选择聊天，控制时目标聊天需已在 Desktop 加载。此项目依赖本机 IPC，远端 Linux 机器不能替代桌面运行环境。
+请先启动并登录 Codex Desktop；扫码后在手机选择聊天。macOS 优先使用 Desktop IPC，控制时目标聊天需已在 Desktop 加载；Linux 在 IPC 无法发现任务所有者时回退到本机 `codex app-server`。远端 Linux 机器不能替代运行 Desktop 的本机环境。
 
 ## 安装源码、CLI、MCP
 

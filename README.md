@@ -2,7 +2,7 @@
 
 用手机扫码连接本机 Codex Desktop：查看工作区和会话、发送或补充指令、停止当前任务，以及选择模型和权限模式。提供 **CLI 和 MCP** 两种调用接口，底层共用同一个控制服务。
 
-这是独立项目，通过 Desktop 的内部 IPC 协议集成；目前在 **macOS** 验证。Desktop 更新、IPC 协议或本地数据库结构变化可能需要适配，尚未验证 Windows/Linux。
+这是独立项目，优先通过 Desktop 的内部 IPC 协议集成；当 Desktop 不提供任务所有者（Linux 上可能出现）时，回退到本机 Codex app-server。macOS 保持使用 IPC，Linux 回退需要可用的 `codex` CLI。Desktop、CLI、IPC 协议或本地数据库结构变化仍可能需要适配，Windows 尚未验证。
 
 ## 让 Agent 帮你安装（最简单）
 

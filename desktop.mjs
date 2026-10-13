@@ -5,6 +5,7 @@ import { EventEmitter } from 'node:events';
 const versions = { 'thread-owner-discovery': 1, 'thread-stream-following-changed': 1,
   'thread-follower-read-model-settings': 1, 'thread-follower-update-thread-settings': 2, 'thread-follower-start-turn': 2,
   'thread-follower-steer-turn': 1, 'thread-follower-interrupt-turn': 4 };
+const compatibleVersions = {'thread-follower-read-model-settings':[1,0],'thread-follower-update-thread-settings':[2,1]};
 
 export function applyPatches(state, patches) {
   for (const {op, path, value} of patches) {
@@ -47,7 +48,7 @@ export function viewState(state, connected, error = null) {
     const visible=items.get(item.id);if(visible)Object.assign(visible,{turnId:turn.turnId,turnStatus:turn.status,turnDurationMs:turn.durationMs??null});
   }
   const active = [...turns.values()].reverse().find(t=>t.status==='inProgress');
-  return {connected,error,title:state?.title??'当前会话',threadId:state?.id??null,cwd:state?.cwd??null,
+  return {connected,error,backend:'desktop-ipc',title:state?.title??'当前会话',threadId:state?.id??null,cwd:state?.cwd??null,
     model:state?.latestModel??state?.latestThreadSettings?.model??null,
     approvalsReviewer: typeof state?.latestThreadSettings?.approvalsReviewer==='string' ? state.latestThreadSettings.approvalsReviewer : null,
     approvalPolicy: typeof state?.latestThreadSettings?.approvalPolicy==='string' ? state.latestThreadSettings.approvalPolicy : null,
@@ -74,13 +75,15 @@ export class Desktop extends EventEmitter {
     try {
       const init=await this.rpc('initialize',{clientType:'cli'}); this.clientId=init.result.clientId;
       const owner=await this.rpc('thread-owner-discovery',{hostId:'local',conversationId:this.threadId}); this.owner=owner.handledByClientId;
-      const settings=await this.rpc('thread-follower-read-model-settings',{conversationId:this.threadId},{targetClientId:this.owner});
-      this.modelSettings=settings.result.settings; this.connected=true; this.lastError=null;
+      try{const settings=await this.compatibleRpc('thread-follower-read-model-settings',{conversationId:this.threadId},{targetClientId:this.owner});this.modelSettings=settings.result.settings}
+      catch(e){if(e.message!=='no-client-found')throw e;this.modelSettings=null}
+      this.connected=true; this.lastError=null;
       this.follow(true); this.emit('change');
     } catch(e) { this.lastError=e.message; s.destroy(); throw e; }
   }
   send(m) { if(!this.socket?.writable)throw Error('Desktop 未连接');const b=Buffer.from(JSON.stringify(m)),h=Buffer.alloc(4);h.writeUInt32LE(b.length);this.socket.write(Buffer.concat([h,b])); }
   rpc(method,params,extra={}) { return new Promise((resolve,reject)=>{const requestId=randomUUID(),timer=setTimeout(()=>{this.pending.delete(requestId);reject(Error('Desktop 请求超时；请检查会话状态后再操作'))},10000);this.pending.set(requestId,{resolve,reject,timer});try{this.send({type:'request',requestId,sourceClientId:this.clientId,method,version:versions[method]??0,params,...extra});}catch(e){clearTimeout(timer);this.pending.delete(requestId);reject(e)}}); }
+  async compatibleRpc(method,params,extra={}) {let last;for(const version of compatibleVersions[method]??[versions[method]??0])try{return await this.rpc(method,params,{...extra,version})}catch(e){last=e;if(e.message!=='no-client-found')throw e}throw last}
   follow(following) { this.send({type:'broadcast',method:'thread-stream-following-changed',version:1,sourceClientId:this.clientId,targetClientIds:[this.owner],params:{hostId:'local',conversationId:this.threadId,following}}); }
   receive(m) {
     if(m.type==='response') { const p=this.pending.get(m.requestId);if(p){clearTimeout(p.timer);this.pending.delete(m.requestId);m.resultType==='error'?p.reject(Error(m.error)):p.resolve(m)}return; }
@@ -96,9 +99,10 @@ export class Desktop extends EventEmitter {
   view() { return viewState(this.state,this.connected,this.lastError); }
   async setModel(model,effort,provider=null) {
     if(!this.connected||!this.state)throw Error('等待 Desktop 会话连接');
-    const previous=(await this.rpc('thread-follower-read-model-settings',{conversationId:this.threadId},{targetClientId:this.owner})).result.settings;
+    let previous;try{previous=(await this.compatibleRpc('thread-follower-read-model-settings',{conversationId:this.threadId},{targetClientId:this.owner})).result.settings}catch(e){if(e.message!=='no-client-found')throw e;previous=this.modelSettings??this.state.latestThreadSettings??{}}
     if(provider&&previous.modelProvider&&previous.modelProvider!==provider)throw Error('会话与模型列表的提供方不同，请在 Desktop 中选择模型');
-    const changed=await this.rpc('thread-follower-update-thread-settings',{conversationId:this.threadId,threadSettings:{model,effort},activeTurnId:null,condition:{ifModelEquals:previous.model,ifEffortEquals:previous.reasoningEffort}},{targetClientId:this.owner});
+    const condition=previous.model&&previous.reasoningEffort?{ifModelEquals:previous.model,ifEffortEquals:previous.reasoningEffort}:undefined;
+    const changed=await this.compatibleRpc('thread-follower-update-thread-settings',{conversationId:this.threadId,threadSettings:{model,effort},activeTurnId:null,...(condition?{condition}:{})},{targetClientId:this.owner});
     if(!changed.result.applied)throw Error('会话模型已在 Desktop 改变，请刷新后重试');
     this.modelSettings={...previous,model,reasoningEffort:effort};
     return{model,reasoningEffort:effort,appliesTo:'next-turn'};
@@ -110,10 +114,10 @@ export class Desktop extends EventEmitter {
     if(!allowedApproval.includes(approvalPolicy)||!allowedSandbox.includes(sandboxMode))throw Error('不支持的权限设置');
     if(approvalsReviewer!==undefined&&!['user','guardian_subagent'].includes(approvalsReviewer))throw Error('不支持的审批方式');
     if(typeof networkAccess!=='boolean')throw Error('请选择网络访问权限');
-    const previous=(await this.rpc('thread-follower-read-model-settings',{conversationId:this.threadId},{targetClientId:this.owner})).result.settings;
+    let previous;try{previous=(await this.compatibleRpc('thread-follower-read-model-settings',{conversationId:this.threadId},{targetClientId:this.owner})).result.settings}catch(e){if(e.message!=='no-client-found')throw e;previous=this.modelSettings??this.state.latestThreadSettings??{}}
     const current=previous.sandboxPolicy??{type:'workspaceWrite',writableRoots:[],networkAccess:false,excludeTmpdirEnvVar:false,excludeSlashTmp:false};
     const sandboxPolicy=sandboxMode==='danger-full-access'?{type:'dangerFullAccess'}:sandboxMode==='read-only'?{type:'readOnly',networkAccess}:{type:'workspaceWrite',writableRoots:Array.isArray(current.writableRoots)?current.writableRoots:(this.state.cwd?[this.state.cwd]:[]),networkAccess,excludeTmpdirEnvVar:Boolean(current.excludeTmpdirEnvVar),excludeSlashTmp:Boolean(current.excludeSlashTmp)};
-    const changed=await this.rpc('thread-follower-update-thread-settings',{conversationId:this.threadId,threadSettings:{approvalPolicy,sandboxPolicy,...(approvalsReviewer?{approvalsReviewer}:{})},activeTurnId:null},{targetClientId:this.owner});
+    const changed=await this.compatibleRpc('thread-follower-update-thread-settings',{conversationId:this.threadId,threadSettings:{approvalPolicy,sandboxPolicy,...(approvalsReviewer?{approvalsReviewer}:{})},activeTurnId:null},{targetClientId:this.owner});
     if(!changed.result.applied)throw Error('会话权限已在 Desktop 改变，请刷新后重试');
     this.modelSettings={...previous,approvalPolicy,sandboxPolicy,approvalsReviewer:approvalsReviewer??previous.approvalsReviewer};
     return{approvalPolicy,sandboxMode,networkAccess,approvalsReviewer:approvalsReviewer??previous.approvalsReviewer,appliesTo:'next-turn'};
