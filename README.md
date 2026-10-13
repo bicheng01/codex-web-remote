@@ -4,7 +4,34 @@
 
 这是独立项目，通过 Desktop 的内部 IPC 协议集成；目前在 **macOS** 验证。Desktop 更新、IPC 协议或本地数据库结构变化可能需要适配，尚未验证 Windows/Linux。
 
-## 快速安装
+## 让 Agent 帮你安装（最简单）
+
+把下面整段复制给有本机终端权限的 Agent，它会安装 CLI 并配置 Codex MCP：
+
+```text
+请在本机安装 https://github.com/bicheng01/codex-web-remote.git，直接完成安装和验证。
+
+先阅读仓库 README 和 docs/INSTALL.md，检查 Node.js 24+、Python 3、Codex CLI
+以及 Codex Desktop；默认使用公网模式，缺少 cloudflared 时安装它。
+克隆到合适的持久目录，执行 npm ci、npm run build、npm link，确保新终端可使用
+codex-remote 和 codex-remote-mcp；全局目录不可写时采用用户目录安装，不使用 sudo。
+
+注册名为 web_remote 的 Codex stdio MCP，使用 Node 和 plugin/mcp.mjs 的绝对路径。
+若已有同名配置，先检查并按需更新，保留其他 MCP 配置。CLI 和 MCP 共用默认运行目录。
+
+验证 codex-remote --help、codex mcp list，以及 MCP 的 tools/list；确认提供
+start_remote、remote_status、refresh_qr、stop_remote 四个工具。
+不要发送测试聊天消息，也不要修改聊天的模型或权限设置。
+
+完成后告诉我安装目录、验证结果、是否需要重新加载 Codex 客户端，并提供：
+1. CLI 启动、状态、刷新二维码、停止的命令。
+2. MCP 接入配置和调用 start_remote 的方式。
+若缺少登录或必须由我操作的步骤，请说明具体阻碍；不要把未验证项当作成功。
+```
+
+安装完成后运行 `codex-remote start`，或让已接入 MCP 的 Agent 调用 `start_remote`。手机建议用系统浏览器打开扫码链接；微信内置浏览器可能连接超时。
+
+## 手动快速安装
 
 需要 Node.js **24+**、Python 3、已登录并运行的 Codex Desktop，以及 `codex` CLI。公网模式还需要 `cloudflared`，局域网模式不需要。
 
