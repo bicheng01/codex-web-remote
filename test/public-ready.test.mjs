@@ -9,6 +9,8 @@ test('Public readiness waits for both app and stylesheet, not only HTML',async()
  await assert.rejects(verifyPublicPage('https://example.test',{fetchPage:async()=>new Response('error',{headers:{'Content-Type':'text/html'}})}),/页面不正确/);
 });
 test('Public readiness recovers after an initial unreachable origin and stops on timeout',async()=>{
- let failed=false;await waitPublicPage('https://example.test',{timeoutMs:2000,fetchPage:async url=>{if(!failed){failed=true;throw Error('DNS not ready')}return good(url)}});assert.equal(failed,true);
+ let failed=false;await waitPublicPage('https://example.test',{timeoutMs:2000,requiredSuccesses:1,fetchPage:async url=>{if(!failed){failed=true;throw Error('DNS not ready')}return good(url)}});assert.equal(failed,true);
  await assert.rejects(waitPublicPage('https://example.test',{timeoutMs:10,fetchPage:async()=>{throw Error('unreachable')}}),/未能就绪/);
 });
+
+test('Public readiness requires consecutive successes and resets after an intermittent failure',async()=>{let pages=0;await waitPublicPage('https://example.test',{intervalMs:0,timeoutMs:3000,fetchPage:async url=>{if(new URL(url).pathname==='/'){pages++;if(pages===2)return new Response('not ready',{status:530})}return good(url)}});assert.equal(pages,5)});

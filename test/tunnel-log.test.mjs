@@ -1,0 +1,2 @@
+import {test} from 'node:test';import assert from 'node:assert/strict';import {tunnelOrigin} from '../tunnel-log.mjs';
+test('Tunnel origin excludes API request failures and accepts assigned hostnames',()=>{assert.equal(tunnelOrigin('failed to request quick Tunnel: Post "https://api.trycloudflare.com/tunnel": context deadline exceeded'),null);assert.equal(tunnelOrigin('INF | https://edited-minneapolis-rosa-inside.trycloudflare.com |'),'https://edited-minneapolis-rosa-inside.trycloudflare.com')});

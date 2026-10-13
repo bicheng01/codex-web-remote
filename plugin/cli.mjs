@@ -40,7 +40,7 @@ export async function run(args,{control,write=text=>process.stdout.write(text),p
  else if(options.command==='qr')value=await control.refresh();
  else{
   let remembered={};try{remembered=JSON.parse(await readFile(path.join(runtime,'cli-session.json'),'utf8'))}catch{}
-  const stages={tunnel:'正在申请公网地址…',connect:'正在连接公网隧道…',verify:'正在验证公网页面和脚本…',ready:'公网已就绪，正在生成二维码…',local:'正在启动局域网服务…'};let previous;
+  const stages={tunnel:'正在申请公网地址…',retry:'公网地址申请超时，正在自动重试…',connect:'正在连接公网隧道…',verify:'正在验证公网页面和脚本…',ready:'公网已就绪，正在生成二维码…',local:'正在启动局域网服务…'};let previous;
   const started=await control.start({mode:options.mode??remembered.mode??'public',port:options.port??remembered.port??43127},{onProgress:stage=>{if(!options.json&&stages[stage]&&previous!==stage){previous=stage;progress(stages[stage]+'\n')}}});
   if(runtime){await mkdir(runtime,{recursive:true,mode:0o700});await writeFile(path.join(runtime,'cli-session.json'),JSON.stringify({mode:started.mode,port:started.port??options.port??remembered.port??43127})+'\n',{mode:0o600})}
   value=started.qrBase64?started:{...started,...await control.pairingQr()};

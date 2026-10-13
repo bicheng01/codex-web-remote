@@ -1,6 +1,6 @@
 {
   "name": "codex-web-remote",
-  "version": "0.5.3",
+  "version": "0.5.4",
   "description": "在会话里显示手机遥控二维码，提供模型选择和权限设置。",
   "author": {
     "name": "bicheng01"

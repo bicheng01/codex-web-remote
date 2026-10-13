@@ -7,8 +7,8 @@ export async function verifyPublicPage(origin,{fetchPage=fetch,signal}={}){
   if(!assets.some(p=>p.endsWith('.js'))||!assets.some(p=>p.endsWith('.css')))throw Error('公网页面缺少应用资源');
   await Promise.all(assets.map(async path=>{const body=await get(path,path.endsWith('.js')?'javascript':'text/css');if(!body.trim())throw Error('公网资源为空')}));
 }
-export async function waitPublicPage(origin,{timeoutMs=40000,attemptMs=6000,fetchPage=fetch,signal,onRetry=()=>{}}={}){
-  const deadline=Date.now()+timeoutMs;let last;
-  while(Date.now()<deadline){signal?.throwIfAborted();try{await verifyPublicPage(origin,{fetchPage,signal:signal?AbortSignal.any([signal,AbortSignal.timeout(Math.min(attemptMs,deadline-Date.now()))]):AbortSignal.timeout(Math.min(attemptMs,deadline-Date.now()))});return}catch(e){signal?.throwIfAborted();last=e;onRetry(e);if(Date.now()<deadline)await delay(Math.min(1000,deadline-Date.now()))}}
+export async function waitPublicPage(origin,{timeoutMs=40000,attemptMs=6000,fetchPage=fetch,signal,onRetry=()=>{},requiredSuccesses=3,intervalMs=1000}={}){
+  const deadline=Date.now()+timeoutMs;let last,successes=0;
+  while(Date.now()<deadline){signal?.throwIfAborted();try{await verifyPublicPage(origin,{fetchPage,signal:signal?AbortSignal.any([signal,AbortSignal.timeout(Math.min(attemptMs,deadline-Date.now()))]):AbortSignal.timeout(Math.min(attemptMs,deadline-Date.now()))});if(++successes>=requiredSuccesses)return;await delay(Math.min(intervalMs,Math.max(0,deadline-Date.now())))}catch(e){signal?.throwIfAborted();last=e;successes=0;onRetry(e);if(Date.now()<deadline)await delay(Math.min(1000,deadline-Date.now()))}}
   throw Error('公网页面未能就绪：'+(last?.message??'超时'));
 }
