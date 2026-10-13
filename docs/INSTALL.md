@@ -9,7 +9,7 @@ codex --version
 cloudflared --version   # 仅公网模式需要
 ```
 
-请先在 macOS 上启动并登录 Codex Desktop，打开目标聊天。此项目依赖本机 IPC，远端 Linux 机器不能替代桌面运行环境。
+请先在 macOS 上启动并登录 Codex Desktop；扫码后在手机选择聊天，控制时目标聊天需已在 Desktop 加载。此项目依赖本机 IPC，远端 Linux 机器不能替代桌面运行环境。
 
 ## 安装源码、CLI、MCP
 
@@ -18,8 +18,7 @@ cloudflared --version   # 仅公网模式需要
 如果只在终端操作，不必安装 MCP 或 Codex 插件：
 
 ```sh
-node plugin/cli.mjs threads
-node plugin/cli.mjs start --thread <thread-id> --mode public
+node plugin/cli.mjs start --mode public
 node plugin/cli.mjs status --json
 ```
 
@@ -30,14 +29,14 @@ node plugin/cli.mjs status --json
 | 变量/选项 | 说明 |
 | --- | --- |
 | `CODEX_HOME` | Codex 数据目录，默认 `~/.codex` |
-| `REMOTE_RUNTIME_DIR` / `--runtime` | 服务状态、日志、二维码和 CLI 会话记忆目录 |
+| `REMOTE_RUNTIME_DIR` / `--runtime` | 服务状态、日志、二维码和 CLI 网络配置目录 |
 | `DESKTOP_SOCKET` | 覆盖默认 `$CODEX_HOME/ipc/ipc.sock` |
 | `CODEX_CLI_PATH` | 可覆盖读取模型目录所用的 codex 可执行文件 |
 | `PYTHON` | Python 可执行文件，默认 `python3` |
 | `LAN_IP` | 局域网模式需公布的电脑 IPv4 地址 |
 | `--port` | 首次启动端口，默认 43127 |
 
-直接调用 `node server.mjs` 需要 `THREAD_ID`；通常应使用 CLI/MCP，由控制层管理后台服务。默认数据库读取的是 `$CODEX_HOME/state_5.sqlite`，旧版或未来新版 Desktop 如改变 schema，需要适配 `catalog.py`。
+直接调用 `node server.mjs` 无需会话 ID；通常应使用 CLI/MCP，由控制层管理后台服务。默认数据库读取的是 `$CODEX_HOME/state_5.sqlite`，旧版或未来新版 Desktop 如改变 schema，需要适配 `catalog.py`。
 
 ## 常见问题
 

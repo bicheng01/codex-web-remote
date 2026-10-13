@@ -26,13 +26,10 @@ codex-remote --help
 ## CLI 使用
 
 ```sh
-# 列出本机聊天 ID，选择已在 Desktop 打开的聊天
-codex-remote threads
+# 启动后扫码，手机上选择工作区和会话
+codex-remote start --mode public
 
-# 首次启动：把 <thread-id> 替换成聊天 ID
-codex-remote start --thread <thread-id> --mode public
-
-# 此后沿用上次成功启动的聊天
+# 此后复用现有服务
 codex-remote start
 codex-remote status
 codex-remote qr
@@ -48,10 +45,10 @@ codex-remote status --json
 如果仅同一 Wi-Fi 使用：
 
 ```sh
-codex-remote start --thread <thread-id> --mode lan
+codex-remote start --mode lan
 ```
 
-切换网络模式、端口或更换服务主聊天前，先 `stop` 再 `start`。每个运行目录管理一个服务。`--runtime <dir>` 或 `REMOTE_RUNTIME_DIR` 可指定另一目录；不要把不同安装指向同一个已有服务却误以为会自动更换服务所有者。
+切换网络模式或端口前，先 `stop` 再 `start`。每个运行目录管理一个服务。`--runtime <dir>` 或 `REMOTE_RUNTIME_DIR` 可指定另一目录；不要把不同安装指向同一个已有服务却误以为会自动更换服务所有者。
 
 ## MCP 接入
 
@@ -91,7 +88,7 @@ MCP 工具：
 | `refresh_qr` | 一次调用刷新并返回二维码 |
 | `stop_remote` | 撤销手机连接，停止本插件拥有的服务 |
 
-首次 `start_remote` 需要 `thread_id`，可指定 `mode: public` 或 `lan`、`port`。运行中的服务会被复用。MCP 返回 text 元数据与 image 内容，若客户端不直接渲染 image，Agent 可用返回的 `imagePath` 在聊天内显示图片。协议的 stdout 只输出 MCP 消息。
+`start_remote` 无需会话 ID，可指定 `mode: public` 或 `lan`、`port`。运行中的服务会被复用。MCP 返回 text 元数据与 image 内容，若客户端不直接渲染 image，Agent 可用返回的 `imagePath` 在聊天内显示图片。协议的 stdout 只输出 MCP 消息。
 
 ### Codex 插件（MCP）
 
@@ -142,10 +139,10 @@ npm run build
 npm test
 
 # 可选：真实 Desktop 集成测试，不发送消息或中断任务
-THREAD_ID=<thread-id> npm test
+REMOTE_TEST_THREAD=<thread-id> npm test
 ```
 
-普通测试使用夹具，未设置 `THREAD_ID` 时跳过真实 Desktop 集成测试。集成测试使用本机端口 43128/43129，请确保它们空闲。前端发布资源带内容哈希并支持 gzip/Brotli，认证与 API 响应不缓存。
+普通测试使用夹具，未设置 `REMOTE_TEST_THREAD` 时跳过真实会话控制测试；无会话 ID 的启动和 MCP 生命周期测试始终运行。集成测试使用本机端口 43128/43129，请确保它们空闲。前端发布资源带内容哈希并支持 gzip/Brotli，认证与 API 响应不缓存。
 
 ## 许可
 
